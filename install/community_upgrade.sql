@@ -1,4 +1,4 @@
--- bk.chuhuo.top 社区扩展迁移；备份数据库后执行。不会删除或覆盖已有帖子、用户或其他配置；仅将游客组设为可读公开板块、不可发帖回复。
+-- bk.chuhuo.top 社区扩展迁移；备份数据库后执行。不会删除或覆盖已有帖子、用户或其他配置；仅将游客组设为可读公开板块、不可发帖回复，并创建邀请码表。
 -- 若板块 ID 已被占用，INSERT IGNORE 会保留现有记录，管理员可在后台重命名/排序。
 INSERT IGNORE INTO `bbs_forum` (`fid`,`name`,`rank`,`brief`,`accesson`) VALUES
 (2,'日常',90,'社区日常讨论',0),
@@ -74,4 +74,12 @@ CREATE TABLE IF NOT EXISTS `bbs_community_raffle_entry` (
 CREATE TABLE IF NOT EXISTS `bbs_community_raffle_winner` (
   `raffle_id` int(11) unsigned NOT NULL, `uid` int(11) unsigned NOT NULL, `rank` smallint(5) unsigned NOT NULL DEFAULT '1', `drawn_at` int(11) unsigned NOT NULL DEFAULT '0',
   `proof` char(64) NOT NULL DEFAULT '', PRIMARY KEY (`raffle_id`,`uid`), UNIQUE KEY `raffle_rank` (`raffle_id`,`rank`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `bbs_community_invite` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT, `code_hash` char(64) NOT NULL, `code_prefix` char(8) NOT NULL DEFAULT '',
+  `max_uses` int(11) unsigned NOT NULL DEFAULT '1', `used_count` int(11) unsigned NOT NULL DEFAULT '0',
+  `expires_at` int(11) unsigned NOT NULL DEFAULT '0', `created_by` int(11) unsigned NOT NULL DEFAULT '0',
+  `created_at` int(11) unsigned NOT NULL DEFAULT '0', `revoked_at` int(11) unsigned NOT NULL DEFAULT '0',
+  `note` varchar(120) NOT NULL DEFAULT '', PRIMARY KEY (`id`), UNIQUE KEY `code_hash` (`code_hash`),
+  KEY `status_expiry` (`revoked_at`,`expires_at`,`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

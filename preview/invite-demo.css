@@ -1,0 +1,49 @@
+.invite-demo-panel { margin-top: 18px; padding: 14px; border: 1px solid #d9e1e6; border-radius: 5px; background: #fbfdfe; }
+.invite-demo-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+.invite-demo-heading h3 { margin: 0; color: #252a2f; font-size: 15px; }
+.invite-demo-heading p { margin: 3px 0 0; color: #73808a; font-size: 11px; }
+.invite-demo-tag { padding: 3px 7px; border: 1px solid #cbdce6; border-radius: 3px; background: #edf5fa; color: #17648d; font-size: 10px; white-space: nowrap; }
+.invite-demo-setting { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #e9edef; }
+.invite-demo-setting strong { display: block; font-size: 12px; }
+.invite-demo-setting small { display: block; max-width: 530px; margin-top: 3px; color: #78828a; font-size: 10px; }
+.invite-demo-setting input { appearance: none; position: relative; width: 34px; height: 19px; flex: 0 0 auto; border: 0; border-radius: 12px; background: #c9cdd1; cursor: pointer; }
+.invite-demo-setting input:after { position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: #fff; content: ""; transition: .15s; }
+.invite-demo-setting input:checked { background: #0b74b7; }
+.invite-demo-setting input:checked:after { left: 17px; }
+.invite-demo-create { display: flex; justify-content: space-between; align-items: end; gap: 12px; padding: 13px 0; }
+.invite-demo-fields { display: grid; grid-template-columns: 120px 120px minmax(125px,1fr); gap: 8px; flex: 1; }
+.invite-demo-fields label { display: block; min-width: 0; }
+.invite-demo-fields label > span { display: block; margin-bottom: 4px; color: #5f6972; font-size: 10px; font-weight: 650; }
+.invite-demo-fields input { width: 100%; height: 32px; padding: 5px 7px; border: 1px solid #d7dade; border-radius: 4px; outline: 0; background: #fff; color: #252a2f; font-size: 11px; }
+.invite-demo-fields input:focus { border-color: #94b8ce; box-shadow: 0 0 0 2px rgba(11,116,183,.1); }
+.invite-demo-fields small { color: #879097; font-size: 9px; }
+.invite-demo-result { display: grid; grid-template-columns: 112px minmax(0,1fr); gap: 5px 10px; align-items: baseline; margin: 1px 0 10px; padding: 9px 10px; border: 1px solid #e1e6e9; border-radius: 4px; background: #fff; }
+.invite-demo-result strong { color: #58636c; font-size: 10px; }
+.invite-demo-result code { overflow-wrap: anywhere; color: #175f87; font-size: 11px; font-weight: 700; letter-spacing: .2px; }
+.invite-demo-result span { grid-column: 2; color: #828b92; font-size: 9px; }
+.invite-demo-table-wrap { overflow-x: auto; border: 1px solid #e5e9ec; border-radius: 4px; background: #fff; }
+.invite-demo-table { width: 100%; border-collapse: collapse; font-size: 10px; text-align: left; }
+.invite-demo-table th { padding: 8px; border-bottom: 1px solid #e5e9ec; background: #f7f9fa; color: #68737c; font-weight: 650; white-space: nowrap; }
+.invite-demo-table td { padding: 8px; border-bottom: 1px solid #eef1f3; color: #5d6770; white-space: nowrap; }
+.invite-demo-table tbody tr:last-child td { border-bottom: 0; }
+.invite-demo-table code { color: #68737c; font-size: 10px; }
+.invite-status { display: inline-block; padding: 2px 5px; border-radius: 3px; background: #f1f2f3; color: #737b83; font-size: 9px; }
+.invite-status.active { background: #edf5ef; color: #41704b; }
+.invite-revoke { border: 1px solid #d8dadd; border-radius: 3px; padding: 3px 6px; background: #fff; color: #667079; font-size: 9px; }
+.invite-revoke:hover { border-color: #dbb7b7; color: #a34949; }
+.invite-revoke:disabled { color: #92989d; }
+.invite-demo-note { display: flex; gap: 8px; margin-top: 10px; padding: 8px 9px; border-left: 3px solid #8eb6ca; background: #f1f7fa; color: #64747d; font-size: 10px; line-height: 1.6; }
+.invite-demo-note strong { flex: 0 0 auto; color: #365a6c; }
+@media (max-width: 720px) {
+  .invite-demo-panel { margin-top: 14px; padding: 11px; }
+  .invite-demo-create { align-items: stretch; flex-direction: column; }
+  .invite-demo-fields { grid-template-columns: 1fr 1fr; }
+  .invite-note-field { grid-column: 1 / -1; }
+  .invite-demo-create > .btn { align-self: flex-start; }
+}
+@media (max-width: 430px) {
+  .invite-demo-result { grid-template-columns: 1fr; }
+  .invite-demo-result span { grid-column: 1; }
+  .invite-demo-note { flex-direction: column; gap: 2px; }
+  .invite-demo-heading h3 { font-size: 14px; }
+}

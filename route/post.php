@@ -75,8 +75,9 @@ if($action == 'create') {
 			
 			// thread_top_create($fid, $tid);
 
-		$post = post_read($pid);
-		$post['floor'] = $thread['posts'] + 2;
+			$post = post_read($pid);
+			if(community_setting_enabled('enable_comment_email_notifications')) community_send_reply_email($thread, $post);
+			$post['floor'] = $thread['posts'] + 2;
 		$postlist = array($post);
 		
 		$allowpost = forum_access_user($fid, $gid, 'allowpost');

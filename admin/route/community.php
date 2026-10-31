@@ -13,9 +13,21 @@ if($method == 'POST') {
 			if(!isset($forumlist[$fid])) continue;
 			community_forum_set_visibility($fid, intval($public) === 1);
 		}
-		cache_delete('forumlist');
-		message(0, '社区设置已保存。');
-	} elseif($community_action == 'raffle_create') {
+			cache_delete('forumlist');
+			message(0, '社区设置已保存。');
+		} elseif($community_action == 'invite_create') {
+			$max_uses = isset($_POST['invite_max_uses']) ? intval($_POST['invite_max_uses']) : 1;
+			$expires_in_days = isset($_POST['invite_expiry_days']) ? intval($_POST['invite_expiry_days']) : 0;
+			$note = isset($_POST['invite_note']) ? trim((string)$_POST['invite_note']) : '';
+			$created_invite = community_invite_create($uid, $max_uses, $expires_in_days, $note);
+			if(!$created_invite) message(-1, '邀请码生成失败，请重试。');
+			$expiry_text = $created_invite['expires_at'] ? date('Y-m-d H:i', $created_invite['expires_at']) : '永不过期';
+			message(0, '邀请码（仅显示本次，请立即复制保存）：'.$created_invite['code'].'；可用次数：'.$created_invite['max_uses'].'；有效期：'.$expiry_text);
+		} elseif($community_action == 'invite_revoke') {
+			$invite_id = isset($_POST['invite_id']) ? intval($_POST['invite_id']) : 0;
+			if(!community_invite_revoke($invite_id)) message(-1, '邀请码撤销失败。');
+			message(0, '邀请码已撤销。');
+		} elseif($community_action == 'raffle_create') {
 		if(!community_setting_enabled('enable_raffle')) message(-1, '请先在社区设置中启用抽奖功能。');
 		$article_id = isset($_POST['article_id']) ? intval($_POST['article_id']) : 0;
 		$prize = isset($_POST['prize']) ? trim($_POST['prize']) : '';
@@ -47,6 +59,8 @@ $forumlist = forum_list_cache();
 $rafflelist = community_raffle_list(NULL, 50);
 	$auditlist = db_find('community_audit', array('action'=>array('raffle_create', 'raffle_draw', 'raffle_create_failed', 'raffle_draw_failed', 'raffle_draw_denied', 'raffle_entry_sync_failed')), array('id'=>-1), 1, 50);
 if(!$auditlist) $auditlist = array();
+$invite_list = community_invite_find(100);
+if(!$invite_list) $invite_list = array();
 $header['title'] = '社区设置与管理';
 $header['mobile_title'] = '社区管理';
 include _include(ADMIN_PATH.'view/htm/community.htm');

@@ -16,9 +16,11 @@ function community_default_settings() {
 		'enable_notifications'=>1,
 		'enable_messages'=>1,
 		'enable_reports'=>1,
-		'enable_raffle'=>1,
-		'allow_member_raffle_draw'=>1,
-		'raffle_winner_count_default'=>1,
+			'enable_raffle'=>1,
+			'allow_member_raffle_draw'=>1,
+			'require_invite_code'=>0,
+			'enable_comment_email_notifications'=>0,
+			'raffle_winner_count_default'=>1,
 		'raffle_duration_days_default'=>7,
 		'feed_page_size'=>20,
 		'theme_background'=>'#f4f4f4',
@@ -47,7 +49,7 @@ function community_setting_enabled($key) {
 function community_settings_save($input) {
 	$defaults = community_default_settings();
 	$old = community_settings();
-	$boolkeys = array('require_login_for_boards', 'enable_search', 'enable_featured', 'enable_rss', 'enable_like', 'enable_thanks', 'enable_dislike', 'enable_bookmarks', 'enable_follow', 'enable_notifications', 'enable_messages', 'enable_reports', 'enable_raffle', 'allow_member_raffle_draw');
+	$boolkeys = array('require_login_for_boards', 'enable_search', 'enable_featured', 'enable_rss', 'enable_like', 'enable_thanks', 'enable_dislike', 'enable_bookmarks', 'enable_follow', 'enable_notifications', 'enable_messages', 'enable_reports', 'enable_raffle', 'allow_member_raffle_draw', 'require_invite_code', 'enable_comment_email_notifications');
 	foreach($boolkeys as $key) $old[$key] = empty($input[$key]) ? 0 : 1;
 	$size = isset($input['feed_page_size']) ? intval($input['feed_page_size']) : intval($defaults['feed_page_size']);
 	$old['feed_page_size'] = max(5, min(100, $size));

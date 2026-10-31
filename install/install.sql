@@ -428,3 +428,19 @@ CREATE TABLE IF NOT EXISTS `bbs_community_raffle_winner` (
   PRIMARY KEY (`raffle_id`,`uid`),
   UNIQUE KEY `raffle_rank` (`raffle_id`,`rank`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `bbs_community_invite` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `code_hash` char(64) NOT NULL,
+  `code_prefix` char(8) NOT NULL DEFAULT '',
+  `max_uses` int(11) unsigned NOT NULL DEFAULT '1',
+  `used_count` int(11) unsigned NOT NULL DEFAULT '0',
+  `expires_at` int(11) unsigned NOT NULL DEFAULT '0',
+  `created_by` int(11) unsigned NOT NULL DEFAULT '0',
+  `created_at` int(11) unsigned NOT NULL DEFAULT '0',
+  `revoked_at` int(11) unsigned NOT NULL DEFAULT '0',
+  `note` varchar(120) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code_hash` (`code_hash`),
+  KEY `status_expiry` (`revoked_at`,`expires_at`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

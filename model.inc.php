@@ -8,9 +8,11 @@
 // hook model_inc_start.php
 
 	$include_model_files = array (
-		APP_PATH.'model/kv.func.php',
-		APP_PATH.'model/community.func.php',
-		APP_PATH.'model/community_raffle.func.php',
+			APP_PATH.'model/kv.func.php',
+			APP_PATH.'model/community.func.php',
+			APP_PATH.'model/community_invite.func.php',
+			APP_PATH.'model/community_mail.func.php',
+			APP_PATH.'model/community_raffle.func.php',
 		APP_PATH.'model/queue.func.php',
 		APP_PATH.'model/group.func.php',
 		APP_PATH.'model/user.func.php',

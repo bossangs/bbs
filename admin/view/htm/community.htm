@@ -14,15 +14,17 @@
 							'enable_search'=>'站内搜索', 'enable_featured'=>'精选/发现', 'enable_rss'=>'RSS',
 							'enable_like'=>'点赞', 'enable_thanks'=>'感谢', 'enable_dislike'=>'反对',
 							'enable_bookmarks'=>'收藏', 'enable_follow'=>'关注用户', 'enable_notifications'=>'通知',
-							'enable_messages'=>'站内私信', 'enable_reports'=>'举报', 'enable_raffle'=>'文章评论抽奖'
+							'enable_messages'=>'站内私信', 'enable_reports'=>'举报', 'enable_raffle'=>'文章评论抽奖',
+							'require_invite_code'=>'注册必须输入邀请码', 'enable_comment_email_notifications'=>'主题作者收到新回复邮件'
 						);
 						foreach($feature_labels as $key=>$label) { ?>
 						<div class="col-md-4 col-lg-3 mb-2">
 							<label class="community-admin-check"><input type="checkbox" name="<?php echo htmlspecialchars($key, ENT_QUOTES, 'UTF-8');?>" value="1" <?php echo !empty($settings[$key]) ? 'checked' : '';?>> <?php echo htmlspecialchars($label, ENT_QUOTES, 'UTF-8');?></label>
 						</div>
-						<?php } ?>
-					</div>
-						<div class="form-row mt-2">
+							<?php } ?>
+						</div>
+						<p class="small text-muted">回复邮件仅发给有权限阅读该板块的主题作者；作者自己回复时不通知。发送失败只记录日志，不影响评论保存，SMTP 每次最多等待 5 秒。</p>
+							<div class="form-row mt-2">
 							<div class="col-md-4 form-group">
 								<label>是否要求访客登录后才能看板块</label>
 								<select class="form-control" name="require_login_for_boards"><option value="0" <?php echo empty($settings['require_login_for_boards']) ? 'selected' : '';?>>否（默认；访客可看公开板块）</option><option value="1" <?php echo !empty($settings['require_login_for_boards']) ? 'selected' : '';?>>是（全站板块需登录）</option></select>
@@ -51,11 +53,31 @@
 						</tbody></table></div>
 					<button class="btn btn-primary" type="submit">保存社区设置</button>
 				</form>
+				</div>
 			</div>
-		</div>
 
-		<div class="card mb-3">
-			<div class="card-header"><strong>按文章 ID 创建抽奖</strong></div>
+			<div class="card mb-3">
+				<div class="card-header"><strong>注册邀请码</strong></div>
+				<div class="card-body">
+					<p class="small text-muted">先在上方开启“注册必须输入邀请码”后，新注册才会校验邀请码。数据库仅保存 SHA-256 哈希；生成后明文只显示一次，请复制保存。可设置使用次数和有效天数（0 表示永不过期）。</p>
+					<form action="<?php echo url('community-settings');?>" method="post" class="form-row align-items-end mb-3">
+						<?php echo community_csrf_field();?>
+						<input type="hidden" name="community_action" value="invite_create">
+						<div class="form-group col-md-2"><label>可用次数</label><input class="form-control" type="number" name="invite_max_uses" min="1" max="1000" value="1" required></div>
+						<div class="form-group col-md-2"><label>有效天数</label><input class="form-control" type="number" name="invite_expiry_days" min="0" max="3650" value="0" required></div>
+						<div class="form-group col-md-5"><label>备注（可选）</label><input class="form-control" type="text" name="invite_note" maxlength="120"></div>
+						<div class="form-group col-md-3"><button class="btn btn-primary btn-block" type="submit">生成邀请码</button></div>
+					</form>
+					<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th>ID</th><th>代码提示</th><th>备注</th><th>使用次数</th><th>有效期</th><th>状态</th><th>操作</th></tr></thead><tbody>
+					<?php if(empty($invite_list)) { ?><tr><td colspan="7" class="text-muted">暂无邀请码</td></tr><?php } else { foreach($invite_list as $invite) { $invite_expiry = intval($invite['expires_at']); $invite_revoked = intval($invite['revoked_at']) > 0; $invite_used_up = intval($invite['used_count']) >= intval($invite['max_uses']); $invite_expired = $invite_expiry > 0 && $invite_expiry <= time(); $invite_state = $invite_revoked ? '已撤销' : ($invite_used_up ? '已用尽' : ($invite_expired ? '已过期' : '可用')); ?>
+					<tr><td><?php echo intval($invite['id']);?></td><td><code><?php echo htmlspecialchars(substr($invite['code_prefix'], 0, 4), ENT_QUOTES, 'UTF-8');?>…</code></td><td><?php echo htmlspecialchars($invite['note'], ENT_QUOTES, 'UTF-8');?></td><td><?php echo intval($invite['used_count']);?> / <?php echo intval($invite['max_uses']);?></td><td><?php echo $invite_expiry ? date('Y-m-d H:i', $invite_expiry) : '永不过期';?></td><td><?php echo $invite_state;?></td><td><?php if(!$invite_revoked && !$invite_used_up && !$invite_expired) { ?><form action="<?php echo url('community-settings');?>" method="post"><input type="hidden" name="community_action" value="invite_revoke"><input type="hidden" name="invite_id" value="<?php echo intval($invite['id']);?>"><?php echo community_csrf_field();?><button class="btn btn-sm btn-outline-danger" type="submit">撤销</button></form><?php } ?></td></tr>
+					<?php } } ?>
+					</tbody></table></div>
+				</div>
+			</div>
+
+			<div class="card mb-3">
+				<div class="card-header"><strong>按文章 ID 创建抽奖</strong></div>
 			<div class="card-body">
 				<p class="text-muted small">输入主题 ID 或帖子 ID。候选池自动来自该主题下的回复评论账号，按 UID 去重；首帖作者不会自动入池，除非其也回复。每个主题只允许一个进行中的抽奖。</p>
 				<form action="<?php echo url('community-settings');?>" method="post" class="form-row align-items-end">
