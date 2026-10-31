@@ -1,0 +1,29 @@
+.env
+conf/conf.php
+conf/smtp.conf.php
+install/install.lock
+
+# Runtime database exports and local stores
+*.sql.gz
+*.dump
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs and temporary files
+/log/*
+!/log/.gitkeep
+!/log/.htaccess
+/tmp/*
+!/tmp/.gitkeep
+!/tmp/.htaccess
+
+# User-uploaded files (keep the application-owned directory placeholders)
+/upload/attach/*
+!/upload/attach/.gitkeep
+/upload/avatar/*
+!/upload/avatar/.gitkeep
+/upload/forum/*
+!/upload/forum/.gitkeep
+/upload/tmp/*
+!/upload/tmp/.gitkeep

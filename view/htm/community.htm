@@ -1,0 +1,50 @@
+<?php include _include(APP_PATH.'view/htm/header.inc.htm');?>
+
+<div class="row community-page">
+	<div class="col-lg-9 main">
+		<div class="card community-card mb-3"><div class="card-body">
+			<h3 class="h5 mb-3"><?php echo htmlspecialchars($community_title, ENT_QUOTES, 'UTF-8');?></h3>
+			<?php if($action == 'search') { ?>
+			<form action="<?php echo url('community-search');?>" method="get" class="form-inline mb-3">
+				<input type="hidden" name="community-search" value="1">
+				<input class="form-control mr-2 flex-grow-1" type="search" name="q" value="<?php echo htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8');?>" placeholder="搜索主题标题">
+				<button class="btn btn-primary" type="submit">搜索</button>
+			</form>
+			<?php } ?>
+			<?php if(in_array($action, array('featured','search','bookmarks'))) { ?>
+				<?php if(empty($threadlist)) { ?><div class="text-muted py-3">暂无主题或没有符合访问权限的结果。</div><?php } else { ?>
+				<ul class="list-unstyled threadlist mb-0"><?php include _include(APP_PATH.'view/htm/thread_list.inc.htm');?></ul>
+				<?php } ?>
+			<?php } elseif($action == 'notifications') { ?>
+				<?php if(empty($notificationlist)) { ?><p class="text-muted">暂无通知。</p><?php } else { ?>
+				<ul class="list-unstyled mb-0"><?php foreach($notificationlist as $notification) { $from_user = user_read_cache($notification['from_uid']); ?>
+				<li class="community-item"><div><strong><?php echo htmlspecialchars(isset($from_user['username']) ? $from_user['username'] : '系统', ENT_QUOTES, 'UTF-8');?></strong> <?php echo htmlspecialchars($notification['content'], ENT_QUOTES, 'UTF-8');?></div>
+					<div class="small text-muted mt-1"><?php echo date('Y-m-d H:i', intval($notification['created_at']));?><?php if(intval($notification['tid'])) { ?> · <a href="<?php echo url('thread-'.intval($notification['tid']));?>">查看主题</a><?php } ?></div></li>
+				<?php } ?></ul><?php } ?>
+			<?php } elseif($action == 'messages') { ?>
+				<?php if(empty($messagelist)) { ?><p class="text-muted">收件箱暂无私信。</p><?php } else { ?>
+				<ul class="list-unstyled mb-0"><?php foreach($messagelist as $message_row) { ?>
+				<li class="community-item"><div class="d-flex justify-content-between"><strong><?php echo htmlspecialchars($message_row['subject'] ? $message_row['subject'] : '（无主题）', ENT_QUOTES, 'UTF-8');?></strong><span class="small text-muted"><?php echo date('Y-m-d H:i', intval($message_row['created_at']));?></span></div>
+					<div class="small text-muted">来自 <?php echo htmlspecialchars($message_row['from_username'], ENT_QUOTES, 'UTF-8');?></div><div class="mt-2 break-all"><?php echo nl2br(htmlspecialchars($message_row['content'], ENT_QUOTES, 'UTF-8'));?></div></li>
+				<?php } ?></ul><?php } ?>
+			<?php } elseif($action == 'raffles') { ?>
+				<p class="text-muted small">候选池来自指定主题下所有回复评论账号，按 UID 去重；不需要手动报名。首帖作者不会自动入池，除非其也在主题下回复。会员开奖权限由后台控制；管理员可提前开奖，会员在截止后开奖。所有成功开奖操作都会留痕。</p>
+				<?php if(empty($rafflelist)) { ?><p class="text-muted">目前没有抽奖活动。</p><?php } else { foreach($rafflelist as $raffle) { $raffle_thread = thread_read($raffle['tid']); $status = intval($raffle['status']); ?>
+				<div class="community-raffle card mb-3"><div class="card-body">
+					<div class="d-flex justify-content-between align-items-start flex-wrap"><div><span class="badge badge-primary">抽奖 #<?php echo intval($raffle['raffle_id']);?></span> <strong class="ml-1"><?php echo htmlspecialchars($raffle['prize'], ENT_QUOTES, 'UTF-8');?></strong></div><span class="badge <?php echo $status == 1 ? 'badge-success' : ($status == 0 ? 'badge-info' : 'badge-secondary');?>"><?php echo $status == 1 ? '已开奖' : ($status == 0 ? '进行中' : ($status == 2 ? '开奖处理中' : '已关闭'));?></span></div>
+					<p class="small text-muted mt-2 mb-2">文章：<a href="<?php echo url('thread-'.intval($raffle['tid']));?>"><?php echo htmlspecialchars(isset($raffle_thread['subject']) ? $raffle_thread['subject'] : '文章已删除', ENT_QUOTES, 'UTF-8');?></a> · 评论者 <?php echo intval($raffle['entry_count']);?> 人 · 计划中奖 <?php echo intval($raffle['winner_count']);?> 人</p>
+					<?php if(intval($raffle['ends_at'])) { ?><p class="small text-muted">截止：<?php echo date('Y-m-d H:i', intval($raffle['ends_at']));?></p><?php } ?>
+					<?php if($status == 0) { ?><p class="small">在文章下回复即可自动进入候选池；开奖时以实际回复者名单为准。</p><?php if(!empty($uid) && community_raffle_can_draw($raffle, $gid) && intval($raffle['entry_count']) > 0) { ?><form method="post" action="<?php echo url('community-action');?>" class="community-ajax community-draw-form"><input type="hidden" name="community_action" value="raffle_draw"><input type="hidden" name="raffle_id" value="<?php echo intval($raffle['raffle_id']);?>"><?php echo community_csrf_field();?><button class="btn btn-sm btn-primary" type="submit">抽取评论者并开奖</button></form><?php } elseif(empty($uid)) { ?><a class="btn btn-sm btn-outline-primary" href="<?php echo url('user-login');?>">登录后在文章下评论</a><?php } ?><?php } else { ?>
+						<div class="mt-3"><strong>中奖名单</strong><?php if(empty($raffle['winner_list'])) { ?><p class="text-muted mb-0">暂无中奖记录。</p><?php } else { ?><ol class="mb-1"><?php foreach($raffle['winner_list'] as $winner) { ?><li><a href="<?php echo url('user-'.intval($winner['uid']));?>"><?php echo htmlspecialchars($winner['username'], ENT_QUOTES, 'UTF-8');?></a> <span class="text-muted small">（UID <?php echo intval($winner['uid']);?>）</span></li><?php } ?></ol><?php } ?><div class="small text-muted">开奖时间：<?php echo date('Y-m-d H:i', intval($raffle['drawn_at']));?> · 候选人数：<?php echo intval($raffle['entry_count']);?> · 种子承诺：<?php echo htmlspecialchars($raffle['seed_hash'], ENT_QUOTES, 'UTF-8');?></div></div>
+					<?php } ?>
+				</div></div>
+				<?php } } ?>
+			<?php } ?>
+		</div></div>
+	</div>
+	<div class="col-lg-3 aside">
+		<div class="card community-card mb-3"><div class="card-body"><h6>社区入口</h6><ul class="list-unstyled mb-0"><li><a href="<?php echo url('community-featured');?>">精选 / 发现</a></li><li><a href="<?php echo url('community-raffles');?>">文章评论抽奖</a></li><li><a href="<?php echo url('community-rss');?>">RSS 订阅</a></li><?php if(!empty($uid)) { ?><li><a href="<?php echo url('community-bookmarks');?>">我的收藏</a></li><li><a href="<?php echo url('community-notifications');?>">通知</a></li><li><a href="<?php echo url('community-messages');?>">站内私信</a></li><?php } ?></ul></div></div>
+	</div>
+</div>
+
+<?php include _include(APP_PATH.'view/htm/footer.inc.htm');?>

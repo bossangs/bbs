@@ -1,0 +1,11 @@
+.git
+.env
+conf/conf.php
+conf/smtp.conf.php
+install/install.lock
+log/*
+tmp/*
+upload/*
+plugin/*
+*.sql.gz
+*.dump

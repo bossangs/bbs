@@ -1,0 +1,93 @@
+<?php include _include(ADMIN_PATH.'view/htm/header.inc.htm');?>
+
+<div class="row">
+	<div class="col-lg-12">
+		<div class="card mb-3">
+			<div class="card-header"><strong>社区功能设置</strong><span class="text-muted small ml-2">主题按 Linux.do 风格；功能开关均可在这里配置。</span></div>
+			<div class="card-body">
+				<form action="<?php echo url('community-settings');?>" method="post">
+					<?php echo community_csrf_field();?>
+					<input type="hidden" name="community_action" value="save_settings">
+					<div class="form-row">
+						<?php
+						$feature_labels = array(
+							'enable_search'=>'站内搜索', 'enable_featured'=>'精选/发现', 'enable_rss'=>'RSS',
+							'enable_like'=>'点赞', 'enable_thanks'=>'感谢', 'enable_dislike'=>'反对',
+							'enable_bookmarks'=>'收藏', 'enable_follow'=>'关注用户', 'enable_notifications'=>'通知',
+							'enable_messages'=>'站内私信', 'enable_reports'=>'举报', 'enable_raffle'=>'文章评论抽奖'
+						);
+						foreach($feature_labels as $key=>$label) { ?>
+						<div class="col-md-4 col-lg-3 mb-2">
+							<label class="community-admin-check"><input type="checkbox" name="<?php echo htmlspecialchars($key, ENT_QUOTES, 'UTF-8');?>" value="1" <?php echo !empty($settings[$key]) ? 'checked' : '';?>> <?php echo htmlspecialchars($label, ENT_QUOTES, 'UTF-8');?></label>
+						</div>
+						<?php } ?>
+					</div>
+						<div class="form-row mt-2">
+							<div class="col-md-4 form-group">
+								<label>是否要求访客登录后才能看板块</label>
+								<select class="form-control" name="require_login_for_boards"><option value="0" <?php echo empty($settings['require_login_for_boards']) ? 'selected' : '';?>>否（默认；访客可看公开板块）</option><option value="1" <?php echo !empty($settings['require_login_for_boards']) ? 'selected' : '';?>>是（全站板块需登录）</option></select>
+						</div>
+						<div class="col-md-4 form-group">
+							<label>非管理员会员可以开奖</label>
+							<select class="form-control" name="allow_member_raffle_draw"><option value="0" <?php echo empty($settings['allow_member_raffle_draw']) ? 'selected' : '';?>>否，仅管理员</option><option value="1" <?php echo !empty($settings['allow_member_raffle_draw']) ? 'selected' : '';?>>是，登录会员可开奖</option></select>
+						</div>
+						<div class="col-md-4 form-group"><label>首页主题数</label><input class="form-control" type="number" min="5" max="100" name="feed_page_size" value="<?php echo intval($settings['feed_page_size']);?>"></div>
+						<div class="col-md-4 form-group"><label>抽奖默认中奖人数</label><input class="form-control" type="number" min="1" max="50" name="raffle_winner_count_default" value="<?php echo intval($settings['raffle_winner_count_default']);?>"></div>
+						<div class="col-md-4 form-group"><label>抽奖默认周期（天，0=不限）</label><input class="form-control" type="number" min="0" max="365" name="raffle_duration_days_default" value="<?php echo intval($settings['raffle_duration_days_default']);?>"></div>
+					</div>
+					<div class="form-row">
+						<?php $theme_labels = array('theme_background'=>'页面背景色', 'theme_surface'=>'卡片颜色', 'theme_navbar'=>'导航颜色', 'theme_primary'=>'主题强调色', 'theme_text'=>'正文颜色'); foreach($theme_labels as $key=>$label) { ?>
+						<div class="col-sm-6 col-lg-2 form-group"><label><?php echo htmlspecialchars($label, ENT_QUOTES, 'UTF-8');?></label><input class="form-control" type="text" pattern="#[0-9A-Fa-f]{6}" name="<?php echo htmlspecialchars($key, ENT_QUOTES, 'UTF-8');?>" value="<?php echo htmlspecialchars($settings[$key], ENT_QUOTES, 'UTF-8');?>"></div>
+						<?php } ?>
+					</div>
+					<hr>
+					<h5>逐板块访问设置</h5>
+					<p class="text-muted small">公开板块游客可读；设为“登录后”会启用 Xiuno 用户组权限矩阵，会员仍按各自组权限判断。</p>
+					<div class="table-responsive"><table class="table table-sm table-bordered">
+						<thead><tr><th>板块</th><th>ID</th><th>访问</th><th>现有权限</th></tr></thead><tbody>
+						<?php foreach($forumlist as $forum) { $fid = intval($forum['fid']); $public = community_forum_is_public($forum); ?>
+						<tr><td><?php echo htmlspecialchars($forum['name'], ENT_QUOTES, 'UTF-8');?></td><td><?php echo $fid;?></td><td><select class="form-control form-control-sm" name="community_visibility[<?php echo $fid;?>]"><option value="1" <?php echo $public ? 'selected' : '';?>>公开（游客可读）</option><option value="0" <?php echo !$public ? 'selected' : '';?>>登录后（按用户组）</option></select></td><td><?php echo !empty($forum['accesson']) ? '启用访问矩阵' : '使用全局用户组权限';?></td></tr>
+						<?php } ?>
+						</tbody></table></div>
+					<button class="btn btn-primary" type="submit">保存社区设置</button>
+				</form>
+			</div>
+		</div>
+
+		<div class="card mb-3">
+			<div class="card-header"><strong>按文章 ID 创建抽奖</strong></div>
+			<div class="card-body">
+				<p class="text-muted small">输入主题 ID 或帖子 ID。候选池自动来自该主题下的回复评论账号，按 UID 去重；首帖作者不会自动入池，除非其也回复。每个主题只允许一个进行中的抽奖。</p>
+				<form action="<?php echo url('community-settings');?>" method="post" class="form-row align-items-end">
+					<?php echo community_csrf_field();?>
+					<input type="hidden" name="community_action" value="raffle_create">
+					<div class="form-group col-md-2"><label>文章/主题/回复 ID</label><input class="form-control" name="article_id" type="number" min="1" required></div>
+					<div class="form-group col-md-4"><label>奖品/活动说明</label><input class="form-control" name="prize" maxlength="160" required placeholder="例如：社区周边一份"></div>
+					<div class="form-group col-md-2"><label>中奖人数</label><input class="form-control" name="winner_count" type="number" min="1" max="50" value="<?php echo intval($settings['raffle_winner_count_default']);?>"></div>
+					<div class="form-group col-md-2"><label>开奖周期（天）</label><input class="form-control" name="duration_days" type="number" min="0" max="365" value="<?php echo intval($settings['raffle_duration_days_default']);?>"></div>
+					<div class="form-group col-md-2"><button class="btn btn-primary btn-block" type="submit">创建抽奖</button></div>
+				</form>
+			</div>
+		</div>
+
+		<div class="card mb-3">
+			<div class="card-header"><strong>抽奖活动</strong></div>
+			<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th>ID</th><th>文章</th><th>奖品</th><th>评论者</th><th>状态</th><th>操作</th></tr></thead><tbody>
+			<?php if(empty($rafflelist)) { ?><tr><td colspan="6" class="text-muted">暂无活动</td></tr><?php } else { foreach($rafflelist as $raffle) { $raffle_thread = thread_read($raffle['tid']); ?>
+			<tr><td><?php echo intval($raffle['raffle_id']);?></td><td><a href="<?php echo url('thread-'.intval($raffle['tid']));?>" target="_blank"><?php echo htmlspecialchars(isset($raffle_thread['subject']) ? $raffle_thread['subject'] : '已删除文章', ENT_QUOTES, 'UTF-8');?></a></td><td><?php echo htmlspecialchars($raffle['prize'], ENT_QUOTES, 'UTF-8');?></td><td><?php echo intval($raffle['entry_count']);?></td><td><?php echo intval($raffle['status']) == 1 ? '已开奖' : (intval($raffle['status']) == 0 ? '进行中' : (intval($raffle['status']) == 2 ? '开奖处理中' : '已关闭'));?></td><td><?php if(intval($raffle['status']) == 0 && intval($raffle['entry_count']) > 0) { ?><form action="<?php echo url('community-settings');?>" method="post" class="d-inline"><input type="hidden" name="community_action" value="raffle_draw"><input type="hidden" name="raffle_id" value="<?php echo intval($raffle['raffle_id']);?>"><?php echo community_csrf_field();?><button class="btn btn-sm btn-outline-primary" type="submit">立即开奖</button></form><?php } ?></td></tr>
+			<?php } } ?>
+			</tbody></table></div>
+		</div>
+
+		<div class="card mb-3">
+			<div class="card-header"><strong>抽奖操作记录</strong></div>
+			<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th>时间</th><th>操作者 UID</th><th>操作</th><th>文章 ID</th><th>记录</th></tr></thead><tbody>
+			<?php if(empty($auditlist)) { ?><tr><td colspan="5" class="text-muted">暂无抽奖操作</td></tr><?php } else { foreach($auditlist as $audit) { ?>
+			<tr><td><?php echo date('Y-m-d H:i:s', intval($audit['created_at']));?></td><td><?php echo intval($audit['actor_uid']);?></td><td><?php echo htmlspecialchars($audit['action'], ENT_QUOTES, 'UTF-8');?></td><td><?php echo intval($audit['tid']);?></td><td class="small text-break"><?php echo htmlspecialchars($audit['reason'], ENT_QUOTES, 'UTF-8');?></td></tr>
+			<?php } } ?>
+			</tbody></table></div>
+		</div>
+	</div>
+</div>
+
+<?php include _include(ADMIN_PATH.'view/htm/footer.inc.htm');?>

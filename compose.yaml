@@ -1,0 +1,51 @@
+services:
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    command: ["--character-set-server=utf8", "--collation-server=utf8_general_ci"]
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD in .env}
+      MARIADB_DATABASE: ${DB_DATABASE:-xiuno}
+      MARIADB_USER: ${DB_USER:-xiuno}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.3}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - ./:/var/www/html:ro
+      - ./conf:/var/www/html/conf:rw
+      - ./log:/var/www/html/log:rw
+      - ./tmp:/var/www/html/tmp:rw
+      - ./upload:/var/www/html/upload:rw
+      - ./plugin:/var/www/html/plugin:rw
+      - ./install:/var/www/html/install:rw
+
+  web:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8080}:80"
+    volumes:
+      - ./:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  db-data:
